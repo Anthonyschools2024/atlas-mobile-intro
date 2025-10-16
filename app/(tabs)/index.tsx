@@ -1,9 +1,8 @@
-import { Image } from 'expo-image';
-import { StyleSheet, TouchableOpacity, FlatList, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Link, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
+import { FlashList } from '@shopify/flash-list';
 
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useDatabase, Activity } from '@/hooks/useDatabase';
@@ -20,6 +19,7 @@ export default function HomeScreen() {
     loadData();
   }, [getActivities]);
 
+  // Refreshes the list when the screen is focused
   useFocusEffect(
     useCallback(() => {
       loadActivities();
@@ -37,50 +37,42 @@ export default function HomeScreen() {
     </ThemedView>
   );
 
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
+  const ListHeader = () => (
+    <ThemedView>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">My Activities</ThemedText>
       </ThemedView>
-
       <Link href="/add-activity" asChild>
         <TouchableOpacity style={styles.button}>
           <ThemedText style={styles.buttonText}>Add activity</ThemedText>
         </TouchableOpacity>
       </Link>
+    </ThemedView>
+  );
 
-      <FlatList
+  return (
+    <ThemedView style={styles.container}>
+      <FlashList
         data={activities}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
+        ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContainer}
-        scrollEnabled={false}
+        estimatedItemSize={80} // Average height of an item
         ListEmptyComponent={<ThemedText style={styles.emptyText}>No activities yet.</ThemedText>}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
-    </ParallaxScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
+  container: {
+    flex: 1,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  titleContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   button: {
     backgroundColor: '#0a7ea4',
@@ -88,7 +80,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 20,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 24,
   },
   buttonText: {
     color: '#fff',
@@ -96,7 +90,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   listContainer: {
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   activityItem: {
     padding: 16,
@@ -113,5 +108,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     fontSize: 16,
-  }
+  },
+  separator: {
+    height: 12,
+  },
 });
